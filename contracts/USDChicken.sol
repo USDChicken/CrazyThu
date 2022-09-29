@@ -10,10 +10,11 @@ pragma solidity ^0.8.4;
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "./IVMe50.sol";
 
 contract USDChicken is ERC20, ERC20Burnable, Ownable {
 
-    IERC20 public VME50;
+    IVMe50 public VME50;
 
     //########### constant ######################
     uint public constant FIRST_MINT = 114;
@@ -39,7 +40,7 @@ contract USDChicken is ERC20, ERC20Burnable, Ownable {
     address _VME50
     )
     ERC20(NAME, SYMBOL) {
-        VME50 = IERC20(_VME50);
+        VME50 = IVMe50(_VME50);
     }
 
     //########### Modifier ######################
@@ -100,9 +101,9 @@ contract USDChicken is ERC20, ERC20Burnable, Ownable {
     function burn(uint256 amount) public override mustBeFiveOrTenModulus(amount) {
         require(balanceOf(msg.sender) > amount, "You dont have enough token");
         super.burn(amount);
-        VME50Amount = amount * 10;
-        require(VME50.totalSupply() + VME50Amount <= VME50.supplyAmount(), "VME50 supply is over");
-        VME50.mint(msg.sender, VME50Amount);
+        uint VME50Amount = amount * 10;
+        require(VME50.totalSupply() + VME50Amount <= VME50.returnSupplyAmount(), "VME50 supply is over");
+        VME50.mint(VME50Amount);
     }
 
     // For frontend to check if user has minted
