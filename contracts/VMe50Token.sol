@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract VMe50 is ERC20, ERC20Burnable, Ownable {
 
-    uint public constant totalSupply = 6402000 * 10 ** 18;
+    uint public constant supplyAmount = 6402000 * 10 ** 18;
 
     constructor() ERC20("VMe50", "VM50") {}
 
