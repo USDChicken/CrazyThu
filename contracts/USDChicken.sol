@@ -13,6 +13,8 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract USDChicken is ERC20, ERC20Burnable, Ownable {
 
+    IERC20 public VME50;
+
     //########### constant ######################
     uint public constant FIRST_MINT = 114;
     uint public constant SECOND_MINT = 514;
@@ -23,17 +25,22 @@ contract USDChicken is ERC20, ERC20Burnable, Ownable {
 
     // mapping map address with uint to store USDChicken minted
     // by a user so far, each user can mint max 20, 10 per round
-    mapping (address => uint) public chickenHolder;
+    mapping(address => uint) public chickenHolder;
 
     // Identifier for first round of mint
-    mapping (address => uint) public mintedCheckFirst;
+    mapping(address => uint) public mintedCheckFirst;
 
     // Identtifier for second round of mint
-    mapping (address => uint) public mintedCheckSecond;
+    mapping(address => uint) public mintedCheckSecond;
 
 
     //########### Constructor ###################
-    constructor() ERC20(NAME, SYMBOL) {}
+    constructor(
+    address _VME50
+    )
+    ERC20(NAME, SYMBOL) {
+        VME50 = IERC20(_VME50);
+    }
 
     //########### Modifier ######################
 
@@ -55,7 +62,7 @@ contract USDChicken is ERC20, ERC20Burnable, Ownable {
     //########### Public Function ###############
 
     // Function for first mint
-    function firstMint(uint256 amount) public canOnlyMintTen(amount){
+    function firstMint(uint256 amount) public canOnlyMintTen(amount) {
         // require(blockTime )
 
         // Set the constant variable
@@ -73,14 +80,14 @@ contract USDChicken is ERC20, ERC20Burnable, Ownable {
         _mint(msg.sender, amount);
     }
 
-    function SecondMint(uint256 amount) public canOnlyMintTen(amount){
+    function SecondMint(uint256 amount) public canOnlyMintTen(amount) {
 
         // Set the constant variable
         uint getCurrentAmount = chickenHolder[msg.sender];
         uint getCurrentStatus = mintedCheckSecond[msg.sender];
 
         // requirements before mint
-        require((totalSupply() + amount) <= (FIRST_MINT+SECOND_MINT), "Second round of sell is over");
+        require((totalSupply() + amount) <= (FIRST_MINT + SECOND_MINT), "Second round of sell is over");
         require(getCurrentAmount <= 20, "You can only hold 20 USDChicken");
         require(getCurrentStatus == 0, "You have already claimed your token for this round");
 
@@ -93,24 +100,40 @@ contract USDChicken is ERC20, ERC20Burnable, Ownable {
     function burn(uint256 amount) public override mustBeFiveOrTenModulus(amount) {
         require(balanceOf(msg.sender) > amount, "You dont have enough token");
         super.burn(amount);
+        VME50Amount = amount * 10;
+        require(VME50.totalSupply() + VME50Amount <= VME50.supplyAmount(), "VME50 supply is over");
+        VME50.mint(msg.sender, VME50Amount);
     }
 
     // For frontend to check if user has minted
-    function returnFirstMintCheck() public view returns(bool){
-        if(mintedCheckFirst[msg.sender] == 1){
+    function returnFirstMintCheck() public view returns (bool){
+        if (mintedCheckFirst[msg.sender] == 1) {
             return true;
-        }else{
+        } else {
             return false;
         }
     }
 
     // For frontend to check if user has minted
-    function returnSecondMintCheck() public view returns(bool){
-        if(mintedCheckSecond[msg.sender] == 1){
+    function returnSecondMintCheck() public view returns (bool){
+        if (mintedCheckSecond[msg.sender] == 1) {
             return true;
-        }else{
+        } else {
             return false;
         }
     }
+
+    function withdraw() public onlyOwner {
+        address _owner = owner();
+        uint256 amount = address(this).balance;
+        (bool sent, ) = _owner.call{value: amount}("");
+        require(sent, "Failed to send Ether");
+    }
+
+    // Function to receive Ether. msg.data must be empty
+    receive() external payable {}
+
+    // Fallback function is called when msg.data is not empty
+    fallback() external payable {}
 }
 

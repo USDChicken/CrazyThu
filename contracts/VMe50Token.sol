@@ -11,6 +11,7 @@ contract VMe50 is ERC20, ERC20Burnable, Ownable {
     constructor() ERC20("VMe50", "VM50") {}
 
     function mint(address to, uint256 amount) public onlyOwner {
+        require(totalSupply() + amount <= supplyAmount, "VMe50: mint amount exceeds supply amount");
         _mint(to, amount);
     }
 }
