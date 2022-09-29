@@ -1,8 +1,21 @@
-# Basic Sample Hardhat Project
+# Crazy Thursday 
+## Love me? V Me 50
 
-This project demonstrates a basic Hardhat use case. It comes with a sample contract, a test for that contract, a sample script that deploys that contract, and an example of a task implementation, which simply lists the available accounts.
 
-Try running some of the following tasks:
+疯狂的星期四，爱我就V我50
+
+我们是新的meme，我们是新的文化，我们是新的时代
+
+## Installation
+
+Before running this project, you need to install its dependencies. Run the following command:
+
+```shell
+npm install
+```
+
+
+To run the sample deployment script:
 
 ```shell
 npx hardhat accounts
