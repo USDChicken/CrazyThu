@@ -7,7 +7,7 @@ interface IVMe50 is IERC20{
     /**
      * @dev the interface of the VMe50 token
      */
-    function mint(uint256 amount) external;
+    function mint(address to, uint256 amount) external;
 
     function returnSupplyAmount() external pure returns (uint);
 }

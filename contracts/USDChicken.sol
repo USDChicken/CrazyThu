@@ -14,13 +14,17 @@ import "./IVMe50.sol";
 
 contract USDChicken is ERC20, ERC20Burnable, Ownable {
 
+    /*
+    * @dev the contract of the USDChicken token
+    */
+
     IVMe50 public VME50;
 
     //########### constant ######################
-    uint public constant FIRST_MINT = 114;
-    uint public constant SECOND_MINT = 514;
+    uint public constant FIRST_MINT = 114 * 10 ** 18;
+    uint public constant SECOND_MINT = 514 * 10 ** 18;
     string public constant NAME = "USDChicken";
-    string public constant SYMBOL = "USDChick";
+    string public constant SYMBOL = "USDCHK";
 
     //########### Mapping #######################
 
@@ -37,7 +41,7 @@ contract USDChicken is ERC20, ERC20Burnable, Ownable {
 
     //########### Constructor ###################
     constructor(
-    address _VME50
+        address _VME50
     )
     ERC20(NAME, SYMBOL) {
         VME50 = IVMe50(_VME50);
@@ -74,11 +78,14 @@ contract USDChicken is ERC20, ERC20Burnable, Ownable {
         require((totalSupply() + amount) <= FIRST_MINT, "First round of sell is over");
         require(getCurrentAmount <= 10, "You can only hold 10 USDChicken");
         require(getCurrentStatus == 0, "You have already claimed your token for this round");
+        require(amount > 0, "You can not mint 0 USDChicken");
 
+        // mint the token
+        uint256 mintAmount = amount * 10 ** 18;
         // calls
         chickenHolder[msg.sender] = amount;
         mintedCheckFirst[msg.sender] = 1;
-        _mint(msg.sender, amount);
+        _mint(msg.sender, mintAmount);
     }
 
     function SecondMint(uint256 amount) public canOnlyMintTen(amount) {
@@ -91,19 +98,23 @@ contract USDChicken is ERC20, ERC20Burnable, Ownable {
         require((totalSupply() + amount) <= (FIRST_MINT + SECOND_MINT), "Second round of sell is over");
         require(getCurrentAmount <= 20, "You can only hold 20 USDChicken");
         require(getCurrentStatus == 0, "You have already claimed your token for this round");
+        require(amount > 0, "You can not mint 0 USDChicken");
 
+        uint256 mintAmount = amount * 10 ** 18;
 
         chickenHolder[msg.sender] += amount;
         mintedCheckSecond[msg.sender] = 1;
-        _mint(msg.sender, amount);
+        _mint(msg.sender, mintAmount);
     }
 
     function burn(uint256 amount) public override mustBeFiveOrTenModulus(amount) {
-        require(balanceOf(msg.sender) > amount, "You dont have enough token");
-        super.burn(amount);
+        require(balanceOf(msg.sender) > amount, "ERC20: burn amount exceeds balance");
+        require(amount > 0, "ERC20: burn amount must be greater than 0");
+        uint256 burnAmount = amount * 10 ** 18;
+        super.burn(burnAmount);
         uint VME50Amount = amount * 10;
         require(VME50.totalSupply() + VME50Amount <= VME50.returnSupplyAmount(), "VME50 supply is over");
-        VME50.mint(VME50Amount);
+        VME50.mint(msg.sender, VME50Amount);
     }
 
     // For frontend to check if user has minted
@@ -127,7 +138,7 @@ contract USDChicken is ERC20, ERC20Burnable, Ownable {
     function withdraw() public onlyOwner {
         address _owner = owner();
         uint256 amount = address(this).balance;
-        (bool sent, ) = _owner.call{value: amount}("");
+        (bool sent,) = _owner.call{value : amount}("");
         require(sent, "Failed to send Ether");
     }
 

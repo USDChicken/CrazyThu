@@ -28,14 +28,15 @@ describe("VME50", function () {
 
     describe("Check mint", function () {
         it("Should mint 1000 VME50", async function () {
-            await contract.connect(user1).mint(1000);
-            expect(await contract.balanceOf(user1.address)).to.equal(1000);
+            const decimals = BigNumber.from(10).pow(18);
+            await contract.connect(user1).mint(user1.address, 1000);
+            expect(await contract.balanceOf(user1.address)).to.equal(BigNumber.from(1000).mul(decimals));
         });
     });
 
     describe("Check Transfer", function () {
         it("Should transfer 1000 VME50 from user1 to user2", async function () {
-            await contract.connect(user1).mint(1000);
+            await contract.connect(user1).mint(user1.address, 1000);
             await contract.connect(user1).transfer(user2.address, 1000);
             expect(await contract.balanceOf(user2.address)).to.equal(1000);
         });
