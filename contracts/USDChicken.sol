@@ -25,6 +25,16 @@ contract USDChicken is ERC20, ERC20Burnable, Ownable {
     uint public constant SECOND_MINT = 514 * 10 ** 18;
     string public constant NAME = "USDChicken";
     string public constant SYMBOL = "USDCHK";
+    uint public constant USDChickenPrice = 0.01 ether;
+
+
+    address[] contributor;
+
+    uint256 public FirstRoundEndTime;
+    uint256 public SecondRoundEndTime;
+
+    bool public firstMinted = false;
+    bool public secondMinted = false;
 
     //########### Mapping #######################
 
@@ -67,8 +77,23 @@ contract USDChicken is ERC20, ERC20Burnable, Ownable {
     //########### Public Function ###############
 
     // Function for first mint
-    function firstMint(uint256 amount) public canOnlyMintTen(amount) {
-        // require(blockTime )
+    // TODO: mint时间段 72小时
+    // TODO: 价格
+    // 手动开启功能
+    function startFirstRound() public onlyOwner {
+        firstMinted = true;
+        FirstRoundEndTime = block.timestamp + 72 hours;
+    }
+
+    function startSecondRound() public onlyOwner {
+        secondMinted = true;
+        SecondRoundEndTime = block.timestamp + 72 hours;
+    }
+
+    function firstMint(uint256 amount) public canOnlyMintTen(amount) payable {
+        uint256 _requireAmount = amount * USDChickenPrice;
+        require(msg.value >= _requireAmount, "USDChicken: not enough ETH");
+        require(firstMinted && block.timestamp < FirstRoundEndTime, "First round is not running");
 
         // Set the constant variable
         uint getCurrentAmount = chickenHolder[msg.sender];
@@ -88,8 +113,10 @@ contract USDChicken is ERC20, ERC20Burnable, Ownable {
         _mint(msg.sender, mintAmount);
     }
 
-    function SecondMint(uint256 amount) public canOnlyMintTen(amount) {
-
+    function SecondMint(uint256 amount) public canOnlyMintTen(amount) payable {
+        uint256 _requireAmount = amount * USDChickenPrice;
+        require(msg.value >= _requireAmount, "USDChicken: not enough ETH");
+        require(secondMinted && block.timestamp < SecondRoundEndTime, "Second round is not running");
         // Set the constant variable
         uint getCurrentAmount = chickenHolder[msg.sender];
         uint getCurrentStatus = mintedCheckSecond[msg.sender];
@@ -112,9 +139,11 @@ contract USDChicken is ERC20, ERC20Burnable, Ownable {
         require(amount > 0, "ERC20: burn amount must be greater than 0");
         uint256 burnAmount = amount * 10 ** 18;
         super.burn(burnAmount);
-        uint VME50Amount = amount * 10;
-        require(VME50.totalSupply() + VME50Amount <= VME50.returnSupplyAmount(), "VME50 supply is over");
-        VME50.mint(msg.sender, VME50Amount);
+        // TODO: 代金券而不是VME50
+//        uint VME50Amount = amount * 10; //转换率 代金券5/10块
+//        require(VME50.totalSupply() + VME50Amount <= VME50.returnSupplyAmount(), "VME50 supply is over");
+//        VME50.mint(msg.sender, VME50Amount);
+        contributor.push(msg.sender);
     }
 
     // For frontend to check if user has minted
