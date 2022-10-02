@@ -18,6 +18,7 @@ contract USDChicken is ERC20, ERC20Burnable, Ownable {
     * @dev the contract of the USDChicken token
     */
 
+    // interface of VMe50
     IVMe50 public VME50;
 
     //########### constant ######################
@@ -48,6 +49,11 @@ contract USDChicken is ERC20, ERC20Burnable, Ownable {
     // Identtifier for second round of mint
     mapping(address => uint) public mintedCheckSecond;
 
+    //########### Events #######################
+    event FirstMinted(address indexed user, uint amount);
+    event SecondMinted(address indexed user, uint amount);
+
+    event Burned(address indexed user, uint amount);
 
     //########### Constructor ###################
     constructor(
@@ -77,14 +83,13 @@ contract USDChicken is ERC20, ERC20Burnable, Ownable {
     //########### Public Function ###############
 
     // Function for first mint
-    // TODO: mint时间段 72小时
-    // TODO: 价格
-    // 手动开启功能
+    // Manual activation function
     function startFirstRound() public onlyOwner {
         firstMinted = true;
         FirstRoundEndTime = block.timestamp + 72 hours;
     }
 
+    // Function for second mint
     function startSecondRound() public onlyOwner {
         secondMinted = true;
         SecondRoundEndTime = block.timestamp + 72 hours;
@@ -111,6 +116,7 @@ contract USDChicken is ERC20, ERC20Burnable, Ownable {
         chickenHolder[msg.sender] = amount;
         mintedCheckFirst[msg.sender] = 1;
         _mint(msg.sender, mintAmount);
+        emit FirstMinted(msg.sender, amount);
     }
 
     function SecondMint(uint256 amount) public canOnlyMintTen(amount) payable {
@@ -132,6 +138,7 @@ contract USDChicken is ERC20, ERC20Burnable, Ownable {
         chickenHolder[msg.sender] += amount;
         mintedCheckSecond[msg.sender] = 1;
         _mint(msg.sender, mintAmount);
+        emit SecondMinted(msg.sender, amount);
     }
 
     function burn(uint256 amount) public override mustBeFiveOrTenModulus(amount) {
@@ -139,11 +146,11 @@ contract USDChicken is ERC20, ERC20Burnable, Ownable {
         require(amount > 0, "ERC20: burn amount must be greater than 0");
         uint256 burnAmount = amount * 10 ** 18;
         super.burn(burnAmount);
-        // TODO: 代金券而不是VME50
 //        uint VME50Amount = amount * 10; //转换率 代金券5/10块
 //        require(VME50.totalSupply() + VME50Amount <= VME50.returnSupplyAmount(), "VME50 supply is over");
 //        VME50.mint(msg.sender, VME50Amount);
         contributor.push(msg.sender);
+        emit Burned(msg.sender, amount);
     }
 
     // For frontend to check if user has minted

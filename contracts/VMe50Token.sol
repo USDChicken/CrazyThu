@@ -26,7 +26,4 @@ contract VMe50 is ERC20, ERC20Burnable {
     function returnSupplyAmount() public pure returns (uint) {
         return supplyAmount;
     }
-
-    //TODO: 赠送
-
 }
